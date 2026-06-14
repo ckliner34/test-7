@@ -1,9 +1,9 @@
-// Import Firebase from the internet (CDN) so it works directly in the browser
+// Import Firebase from the internet (CDN)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// Your actual Firebase Configuration
+// Your exact Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCD9iPVikuMHjAIYFdaeTH81HR60xpmUh8",
   authDomain: "test-3-trail.firebaseapp.com",
@@ -75,12 +75,19 @@ const totalMilesElement = document.getElementById('total-miles');
 const completedCountElement = document.getElementById('completed-count');
 const progressBarElement = document.getElementById('progress-bar');
 
+// 🌟 RENDER IMMEDIATELY so the screen is never blank while waiting for the cloud
+updateStats();
+renderTrails();
+
 // 1. Automatically sign the user in invisibly
 signInAnonymously(auth).catch((error) => {
     console.error("Authentication Error:", error);
+    if (error.code === 'auth/unauthorized-domain') {
+        alert("Firebase Error: This domain is not authorized. Please add your GitHub Pages URL to Firebase Auth Authorized Domains.");
+    }
 });
 
-// 2. Wait for the user to be signed in, then get their data
+// 2. Wait for the user to be signed in, then get their cloud data
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         userId = user.uid; // Get their invisible ID
@@ -90,21 +97,27 @@ onAuthStateChanged(auth, async (user) => {
 
 // 3. Pull data from Firestore
 async function loadUserDataFromCloud() {
-    const userDocRef = doc(db, "users", userId);
-    const docSnap = await getDoc(userDocRef);
+    try {
+        const userDocRef = doc(db, "users", userId);
+        const docSnap = await getDoc(userDocRef);
 
-    if (docSnap.exists()) {
-        completedTrails = docSnap.data().completedTrails || [];
-    } else {
-        completedTrails = [];
+        if (docSnap.exists()) {
+            completedTrails = docSnap.data().completedTrails || [];
+        } else {
+            completedTrails = [];
+        }
+        
+        // 🌟 RE-RENDER with the user's saved data once it arrives
+        updateStats();
+        renderTrails();
+    } catch (error) {
+        console.error("Error loading data from cloud:", error);
     }
-    updateStats();
-    renderTrails();
 }
 
 // 4. Save data to Firestore
 async function saveUserDataToCloud() {
-    if (!userId) return; // Don't save if not logged in
+    if (!userId) return; // Don't save if not fully logged in yet
     const userDocRef = doc(db, "users", userId);
     await setDoc(userDocRef, { completedTrails: completedTrails }, { merge: true });
 }
@@ -159,7 +172,7 @@ function toggleTrail(id, isChecked) {
         completedTrails = completedTrails.filter(trailId => trailId !== id);
     }
     
-    // Save to the cloud instead of local storage!
+    // Save to the cloud
     saveUserDataToCloud();
     
     updateStats();
