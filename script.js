@@ -1,4 +1,25 @@
-// Data: 43 Trails in and around the Fox Cities with approximate mileages
+// Import Firebase from the internet (CDN) so it works directly in the browser
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// Your actual Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCD9iPVikuMHjAIYFdaeTH81HR60xpmUh8",
+  authDomain: "test-3-trail.firebaseapp.com",
+  projectId: "test-3-trail",
+  storageBucket: "test-3-trail.firebasestorage.app",
+  messagingSenderId: "317689688398",
+  appId: "1:317689688398:web:efb9e0a3c41774e2abae1f",
+  measurementId: "G-J1770756TD"
+};
+
+// Initialize Firebase Backend
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Data: 43 Trails
 const trailsData = [
     { id: 1, name: "Loop the Lake", miles: 3.5 },
     { id: 2, name: "CE Trail", miles: 5.8 },
@@ -45,8 +66,8 @@ const trailsData = [
     { id: 43, name: "Shattuck Park Trail", miles: 0.5 }
 ];
 
-// Initialize state from local storage or create empty array
-let completedTrails = JSON.parse(localStorage.getItem('foxCitiesCompletedTrails')) || [];
+let completedTrails = [];
+let userId = null;
 
 // DOM Elements
 const trailListElement = document.getElementById('trail-list');
@@ -54,18 +75,50 @@ const totalMilesElement = document.getElementById('total-miles');
 const completedCountElement = document.getElementById('completed-count');
 const progressBarElement = document.getElementById('progress-bar');
 
-// Function to render the trail list
+// 1. Automatically sign the user in invisibly
+signInAnonymously(auth).catch((error) => {
+    console.error("Authentication Error:", error);
+});
+
+// 2. Wait for the user to be signed in, then get their data
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        userId = user.uid; // Get their invisible ID
+        await loadUserDataFromCloud();
+    }
+});
+
+// 3. Pull data from Firestore
+async function loadUserDataFromCloud() {
+    const userDocRef = doc(db, "users", userId);
+    const docSnap = await getDoc(userDocRef);
+
+    if (docSnap.exists()) {
+        completedTrails = docSnap.data().completedTrails || [];
+    } else {
+        completedTrails = [];
+    }
+    updateStats();
+    renderTrails();
+}
+
+// 4. Save data to Firestore
+async function saveUserDataToCloud() {
+    if (!userId) return; // Don't save if not logged in
+    const userDocRef = doc(db, "users", userId);
+    await setDoc(userDocRef, { completedTrails: completedTrails }, { merge: true });
+}
+
+// Render the trail list
 function renderTrails() {
     trailListElement.innerHTML = '';
     
     trailsData.forEach(trail => {
         const isCompleted = completedTrails.includes(trail.id);
         
-        // Create container
         const trailDiv = document.createElement('div');
         trailDiv.className = `trail-item ${isCompleted ? 'completed' : ''}`;
         
-        // Allow clicking the whole box to check the box
         trailDiv.addEventListener('click', (e) => {
             if (e.target.tagName !== 'INPUT') {
                 const checkbox = trailDiv.querySelector('input');
@@ -73,28 +126,23 @@ function renderTrails() {
             }
         });
 
-        // Checkbox
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.className = 'trail-checkbox';
         checkbox.checked = isCompleted;
         checkbox.addEventListener('change', () => toggleTrail(trail.id, checkbox.checked));
 
-        // Info container
         const infoDiv = document.createElement('div');
         infoDiv.className = 'trail-info';
 
-        // Trail Name
         const nameSpan = document.createElement('span');
         nameSpan.className = 'trail-name';
         nameSpan.textContent = trail.name;
 
-        // Trail Miles
         const milesSpan = document.createElement('span');
         milesSpan.className = 'trail-miles';
         milesSpan.textContent = `${trail.miles.toFixed(2)} mi`;
 
-        // Assemble
         infoDiv.appendChild(nameSpan);
         infoDiv.appendChild(milesSpan);
         trailDiv.appendChild(checkbox);
@@ -103,7 +151,7 @@ function renderTrails() {
     });
 }
 
-// Function to handle checking/unchecking a trail
+// Handle checking/unchecking
 function toggleTrail(id, isChecked) {
     if (isChecked) {
         if (!completedTrails.includes(id)) completedTrails.push(id);
@@ -111,33 +159,25 @@ function toggleTrail(id, isChecked) {
         completedTrails = completedTrails.filter(trailId => trailId !== id);
     }
     
-    // Save to local storage
-    localStorage.setItem('foxCitiesCompletedTrails', JSON.stringify(completedTrails));
+    // Save to the cloud instead of local storage!
+    saveUserDataToCloud();
     
-    // Re-calculate math and re-render
     updateStats();
     renderTrails();
 }
 
-// Function to update the top header numbers
+// Update the top header numbers
 function updateStats() {
     let totalMiles = 0;
     
-    // Calculate total miles based on completed IDs
     completedTrails.forEach(id => {
         const trail = trailsData.find(t => t.id === id);
         if (trail) totalMiles += trail.miles;
     });
 
-    // Update Text
     totalMilesElement.textContent = totalMiles.toFixed(2);
     completedCountElement.textContent = `${completedTrails.length} / ${trailsData.length}`;
     
-    // Update Progress Bar
     const percentComplete = (completedTrails.length / trailsData.length) * 100;
     progressBarElement.style.width = `${percentComplete}%`;
 }
-
-// Initial Load
-updateStats();
-renderTrails();
