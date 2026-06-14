@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fox Cities Trail Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1>Fox Cities Trail Tracker</h1>
+        <div class="stats-container">
+            <div class="stat-box">
+                <span class="stat-label">Total Miles</span>
+                <span class="stat-value" id="total-miles">0.00</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Trails Completed</span>
+                <span class="stat-value" id="completed-count">0 / 43</span>
+            </div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <p class="intro-text">Check off the trails as you hike them. Your progress is automatically saved to this device!</p>
+        <div id="trail-list" class="trail-list">
+            </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

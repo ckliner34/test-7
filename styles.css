@@ -1,0 +1,156 @@
+:root {
+    --primary-color: #2E7D32; /* Forest Green */
+    --secondary-color: #81C784;
+    --background-color: #F4F7F6;
+    --card-bg: #FFFFFF;
+    --text-dark: #333333;
+    --text-light: #777777;
+    --border-color: #E0E0E0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-dark);
+    padding-top: 180px; /* Space for the sticky header */
+}
+
+/* Sticky Header */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px 20px 0 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.app-header h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: space-around;
+    max-width: 600px;
+    margin: 0 auto 15px auto;
+}
+
+.stat-box {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin-top: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #FFC107; /* Amber accent */
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+/* Main Content */
+.app-main {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.intro-text {
+    text-align: center;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+/* Trail List Items */
+.trail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trail-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.trail-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+}
+
+.trail-item.completed {
+    background-color: #E8F5E9;
+    border-color: var(--secondary-color);
+}
+
+.trail-item.completed .trail-name {
+    text-decoration: line-through;
+    color: var(--text-light);
+}
+
+/* Checkbox Styling */
+.trail-checkbox {
+    width: 24px;
+    height: 24px;
+    margin-right: 15px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.trail-info {
+    flex-grow: 1;
+}
+
+.trail-name {
+    display: block;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.trail-miles {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
