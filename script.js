@@ -3,15 +3,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// Your exact Firebase Configuration
+// 🔴 PASTE YOUR FIREBASE CONFIGURATION HERE 🔴
 const firebaseConfig = {
-  apiKey: "AIzaSyCD9iPVikuMHjAIYFdaeTH81HR60xpmUh8",
-  authDomain: "test-3-trail.firebaseapp.com",
-  projectId: "test-3-trail",
-  storageBucket: "test-3-trail.firebasestorage.app",
-  messagingSenderId: "317689688398",
-  appId: "1:317689688398:web:efb9e0a3c41774e2abae1f",
-  measurementId: "G-J1770756TD"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 // Initialize Firebase Backend
@@ -75,19 +74,12 @@ const totalMilesElement = document.getElementById('total-miles');
 const completedCountElement = document.getElementById('completed-count');
 const progressBarElement = document.getElementById('progress-bar');
 
-// 🌟 RENDER IMMEDIATELY so the screen is never blank while waiting for the cloud
-updateStats();
-renderTrails();
-
 // 1. Automatically sign the user in invisibly
 signInAnonymously(auth).catch((error) => {
     console.error("Authentication Error:", error);
-    if (error.code === 'auth/unauthorized-domain') {
-        alert("Firebase Error: This domain is not authorized. Please add your GitHub Pages URL to Firebase Auth Authorized Domains.");
-    }
 });
 
-// 2. Wait for the user to be signed in, then get their cloud data
+// 2. Wait for the user to be signed in, then get their data
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         userId = user.uid; // Get their invisible ID
@@ -97,27 +89,21 @@ onAuthStateChanged(auth, async (user) => {
 
 // 3. Pull data from Firestore
 async function loadUserDataFromCloud() {
-    try {
-        const userDocRef = doc(db, "users", userId);
-        const docSnap = await getDoc(userDocRef);
+    const userDocRef = doc(db, "users", userId);
+    const docSnap = await getDoc(userDocRef);
 
-        if (docSnap.exists()) {
-            completedTrails = docSnap.data().completedTrails || [];
-        } else {
-            completedTrails = [];
-        }
-        
-        // 🌟 RE-RENDER with the user's saved data once it arrives
-        updateStats();
-        renderTrails();
-    } catch (error) {
-        console.error("Error loading data from cloud:", error);
+    if (docSnap.exists()) {
+        completedTrails = docSnap.data().completedTrails || [];
+    } else {
+        completedTrails = [];
     }
+    updateStats();
+    renderTrails();
 }
 
 // 4. Save data to Firestore
 async function saveUserDataToCloud() {
-    if (!userId) return; // Don't save if not fully logged in yet
+    if (!userId) return; // Don't save if not logged in
     const userDocRef = doc(db, "users", userId);
     await setDoc(userDocRef, { completedTrails: completedTrails }, { merge: true });
 }
@@ -172,7 +158,7 @@ function toggleTrail(id, isChecked) {
         completedTrails = completedTrails.filter(trailId => trailId !== id);
     }
     
-    // Save to the cloud
+    // Save to the cloud instead of local storage!
     saveUserDataToCloud();
     
     updateStats();
